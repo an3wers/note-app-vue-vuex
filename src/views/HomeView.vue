@@ -13,7 +13,7 @@
           <!-- Textarea -->
           <div class="tags my-3">
             <span
-              v-for="tag in tagList"
+              v-for="tag in getTagList"
               @click="handleTagActive(tag)"
               :key="tag.title"
               :class="{ active: tag.isActive }"
@@ -28,8 +28,9 @@
         </form>
         <!-- List note -->
         <h3 class="mb-3">Note list</h3>
-        <div v-if="noteList.length > 0" class="note-list">
-          <div v-for="(note, index) in noteList" :key="index" class="card mb-3">
+        
+        <div v-if="getNoteList.length > 0" class="note-list">
+          <div v-for="(note, index) in getNoteList" :key="index" class="card mb-3">
             <div class="card-body">
               <h5 class="card-title">{{ note.title }}</h5>
               <div class="note-tags mb-1">
@@ -38,7 +39,7 @@
               <a href="#" @click.prevent="removeNote(note)" class="card-link"
                 >Удалить</a
               >
-              <!-- <a href="#" class="card-link">Завершить</a> -->
+              
             </div>
           </div>
         </div>
@@ -58,62 +59,55 @@ export default {
   data() {
     return {
       input: "",
-      noteList: [],
-      tagList: [
-        { title: "Home", isActive: false },
-        { title: "Work", isActive: false },
-        { title: "Idea", isActive: false },
-      ],
       activeTags: [],
     };
   },
   methods: {
     handleTagActive(tag) {
-      tag.isActive = !tag.isActive;
-      const currentTag = tag.title;
-
-      const result = this.activeTags.find((tag) => tag === currentTag);
-
-      if (result) {
-        this.activeTags = this.activeTags.filter((tag) => tag != currentTag);
-      } else {
-        this.activeTags.push(currentTag);
-      }
+      return this.$store.dispatch('setActiveStateOnTag', tag)
     },
+
     submitForm() {
-      this.noteList.push({ title: this.input, tags: this.activeTags });
-      this.input = "";
-      this.activeTags = [];
-      this.tagList.forEach((tag) => (tag.isActive = false));
+       const data = this.$store.dispatch('setNewNote', {title: this.input, tags:this.getActiveTag})
+      this.input = ''
+      return data
     },
 
     removeNote(note) {
-      const currentNote = note;
-      this.noteList = this.noteList.filter(
-        (note) => note.title != currentNote.title
-      );
-    },
+      return this.$store.dispatch('removeNote', note)
+    }
+
   },
   computed: {
+
+    // Получаем данные с стора vuex
+    
+    getNoteList() {
+      return this.$store.getters.getNoteList
+    },
+
+    getTagList() {
+       return this.$store.getters.getTagList
+    },
+
+    // возвразаю список активных тэгов, массив объектов
+    getActiveTag() {
+      const currentActiveTags = this.getTagList.filter(t => t.isActive == true)
+      const result = currentActiveTags.map(el => el.title)
+      return this.activeTags = [...result]
+
+    },
+
     // Валидация формы
     inputValid() {
       return this.input.length > 3 ? true : false;
     },
   },
-  watch: {
-    noteList: {
-      handler(notes) {
-        localStorage.setItem("notes", JSON.stringify(notes));
-      },
-      deep: true,
-    },
-  },
+ 
   mounted() {
-    // Рендер на экран
-    const dataFromLs = localStorage.getItem("notes");
-      if(dataFromLs) {
-        this.noteList = JSON.parse(dataFromLs)
-      }
+    
+    return this.$store.dispatch('updateNoteList')
+ 
   },
 };
 </script>
