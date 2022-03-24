@@ -44,9 +44,16 @@ export default createStore({
 
     editNote(state, note) {
       const currentNote = state.noteList.find((n) => n.id === note.id);
-      currentNote.editing = true;
-      console.log(state.noteList);
+      currentNote.editing = !currentNote.editing;
+      // console.log(state.noteList);
     },
+    updateNote(state, paylode){
+      const currentNote = state.noteList.find((n) => n.editing === true)
+      currentNote.title = paylode.title
+      currentNote.editing = false
+      const data = JSON.stringify(state.noteList);
+      setItemToLs("notes", data);
+    }
   },
   actions: {
     setActiveStateOnTag({ commit }, tag) {
@@ -65,6 +72,9 @@ export default createStore({
     editNote({ commit }, note) {
       commit("editNote", note);
     },
+    updateNote({commit}, paylode){
+      commit('updateNote', paylode)
+    }
   },
   // modules: {},
 });

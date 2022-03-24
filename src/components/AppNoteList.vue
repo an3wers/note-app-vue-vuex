@@ -24,71 +24,53 @@
     </div>
   </div>
 
-  <!-- Модальное окно -->
-  <Teleport to="body">
-    <div
-      v-if="getModalIsActive"
-      :class="{ show: getModalIsActive }"
-      class="app-modal-backdrop"
-      @click="closeModal"
-    ></div>
+  <app-modal-editing-note v-if="modalIsActive" @updateNote="handleUpdateNote" @closeModal="handleCloseModal" :editingNote="editingNote" :modalIsActive="modalIsActive" />
 
-    <div
-      v-if="getModalIsActive"
-      :class="{ show: getModalIsActive }"
-      class="app-modal"
-    >
-      <div class="app-modal__header">
-        <h4>Изменить заметку</h4>
-      </div>
-      <div class="app-modal__body py-4">
-        <form>
-          <textarea v-model="input" class="form-control" rows="3"></textarea>
-          <div class="tags my-3">
-            <span>Тэги</span>
-          </div>
-        </form>
-      </div>
-      <div class="app-modal__footer">
-        <button type="button" @click="closeModal" class="btn btn-secondary me-2">Отменить</button>
-        <button type="button" class="btn btn-primary">Обновить</button>
-      </div>
-    </div>
-  </Teleport>
-
-  <!-- #Модальное окно -->
+ 
 </template>
 
 <script>
+import AppModalEditingNote from '@/components/AppModalEditingNote.vue'
+
 export default {
   data() {
     return {
       modalIsActive: false,
-      input: ''
+      editingNote: null
     };
   },
-
+  components: {
+      AppModalEditingNote
+  },
   methods: {
     removeNote(note) {
       return this.$store.dispatch("removeNote", note);
     },
+
     editNote(note) {
+      this.editingNote = note
       this.modalIsActive = true;
-      this.input = note.title
       this.$store.dispatch("editNote", note); // ?
     },
-    closeModal(){
+
+    handleCloseModal() {
       this.modalIsActive = false
+      this.$store.dispatch("editNote", this.editingNote);
+      this.editingNote = null;
+    },
+
+    handleUpdateNote(body) {
+      console.log(body)
+      this.$store.dispatch("updateNote", { title: body });
+      this.modalIsActive = false;
+      this.editingNote = null;
     }
+
   },
 
   computed: {
     getNoteList() {
       return this.$store.getters.getNoteList;
-    },
-
-    getModalIsActive() {
-      return this.modalIsActive;
     },
   },
 
